@@ -61,24 +61,31 @@ class Game:
             mod_y = 1
         else:
             mod_y = 2
-        print(mod_x,mod_y)
+        if self.state[mod_x][mod_y] != '?':
+            return False
         if image == self.cross:
             self.state[mod_x][mod_y] = 'x'
         else:
             self.state[mod_x][mod_y] = 'o'
         self.draw(image,(mod_x,mod_y))
+        return True
     
     def player_move(self,player,image):
         pos = pygame.mouse.get_pos()
-        self.draw_move(image,pos)
+        done = self.draw_move(image,pos)
+        if not done:
+            return False
+        return True
     
     def game_end(self,who):
         self.surface.fill(BG_color)
         font = pygame.font.SysFont('arial', 15)
         if (who == 'x'):
             line1 = font.render("cross wins!", True, text)
-        else:
+        elif (who == 'o'):
             line1 = font.render("circle wins!", True, text)
+        else:
+            line1 = font.render("Its a Draw!", True, text)
         self.surface.blit(line1,(100,100))
         line2 = font.render(f"Press Enter return to main screen", True, text)
         self.surface.blit(line2,(100,150))
@@ -88,24 +95,27 @@ class Game:
         # check rows
         for i in range(3):
             if self.state[i][0] == self.state[i][1] and self.state[i][0] == self.state[i][2] and self.state[i][1] != '?':
-                self.game_end(self.state[i][0])
-                return True
+                return self.state[i][0]
         # check columns
         for i in range(3):
             if self.state[0][i] == self.state[1][i] and self.state[0][i] == self.state[2][i] and self.state[0][i] != '?':
-                self.game_end(self.state[0][i])
-                return True
+                return self.state[0][i]
         # check diagonals
         if self.state[0][0] == self.state[1][1] and self.state[0][0] == self.state[2][2] and self.state[2][2] != '?':
-            self.game_end(self.state[0][0])
-            return True
+            return self.state[0][0]
         if self.state[0][2] == self.state[1][1] and self.state[0][2] == self.state[2][0] and self.state[1][1] != '?':
-            self.game_end(self.state[0][2])
-            return True
-        return False
+            return self.state[0][2]
+        return None
 
     def reset(self):
         self.state = [['?','?','?'],['?','?','?'],['?','?','?']]
+    
+    def check_draw(self):
+        for i in range(3):
+            for j in range(3):
+                if self.state[i][j] == '?':
+                    return False
+        return True
 
     def run(self):
         start = True
@@ -125,12 +135,25 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if not start:
                         if turn == 0:
-                            game.player_move("player1",game.circle)
+                            t = game.player_move("player1",game.circle)
                         else:
-                            game.player_move("player2",game.cross)
-                        turn = (turn + 1)%2
-                        if game.check_win() == True:
+                            t = game.player_move("player2",game.cross)
+                        if not t:
+                            turn = turn
+                        else:
+                            turn = (turn + 1)%2
+                        status = game.check_win()
+                        draw = game.check_draw()
+                        if draw == True:
                             start = True
+                            time.sleep(0.5)
+                            game.game_end('?')
+                            turn = 0
+                            self.reset()
+                        if status != None:
+                            start = True
+                            time.sleep(0.5)
+                            self.game_end(status)
                             self.reset()
                             turn  = 0
 
