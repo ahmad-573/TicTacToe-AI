@@ -91,29 +91,29 @@ class Game:
         self.surface.blit(line2,(100,150))
         pygame.display.flip()
     
-    def check_win(self):
+    def check_win(self,state):
         # check rows
         for i in range(3):
-            if self.state[i][0] == self.state[i][1] and self.state[i][0] == self.state[i][2] and self.state[i][1] != '?':
-                return self.state[i][0]
+            if state[i][0] == state[i][1] and state[i][0] == state[i][2] and state[i][1] != '?':
+                return state[i][0]
         # check columns
         for i in range(3):
-            if self.state[0][i] == self.state[1][i] and self.state[0][i] == self.state[2][i] and self.state[0][i] != '?':
-                return self.state[0][i]
+            if state[0][i] == state[1][i] and state[0][i] == state[2][i] and state[0][i] != '?':
+                return state[0][i]
         # check diagonals
-        if self.state[0][0] == self.state[1][1] and self.state[0][0] == self.state[2][2] and self.state[2][2] != '?':
-            return self.state[0][0]
-        if self.state[0][2] == self.state[1][1] and self.state[0][2] == self.state[2][0] and self.state[1][1] != '?':
-            return self.state[0][2]
+        if state[0][0] == state[1][1] and state[0][0] == state[2][2] and state[2][2] != '?':
+            return state[0][0]
+        if state[0][2] == state[1][1] and state[0][2] == state[2][0] and state[1][1] != '?':
+            return state[0][2]
         return None
 
     def reset(self):
         self.state = [['?','?','?'],['?','?','?'],['?','?','?']]
     
-    def check_draw(self):
+    def check_draw(self,state):
         for i in range(3):
             for j in range(3):
-                if self.state[i][j] == '?':
+                if state[i][j] == '?':
                     return False
         return True
 
@@ -135,27 +135,49 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if not start:
                         if turn == 0:
-                            t = game.player_move("player1",game.circle)
+                            t = self.player_move("player1",self.circle)
                         else:
-                            t = game.player_move("player2",game.cross)
+                            t = self.player_move("player2",self.cross)
                         if not t:
                             turn = turn
                         else:
                             turn = (turn + 1)%2
-                        status = game.check_win()
-                        draw = game.check_draw()
+                        status = self.check_win(self.state)
+                        draw = self.check_draw(self.state)
                         if status != None:
                             start = True
                             time.sleep(0.5)
                             self.game_end(status)
+                            print(self.evaluation(self.state))
                             self.reset()
                             turn  = 0
                         elif draw == True:
                             start = True
                             time.sleep(0.5)
-                            game.game_end('?')
+                            self.game_end('?')
                             turn = 0
                             self.reset()
+
+
+    # Computer Mode-player 2 is computer:
+    def evaluation(self,state):
+        draw = self.check_draw(state)
+        win = self.check_win(state)
+        if win != None:
+            if win == 'x':
+                return 1
+            elif win == 'o':
+                return -1
+        if draw == True:
+            return 0
+
+
+    def minimax(self):
+        pass
+
+    def computer_move(self):
+        pass
+
 
 
 
