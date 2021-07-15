@@ -148,7 +148,6 @@ class Game:
                             start = True
                             time.sleep(0.5)
                             self.game_end(status)
-                            print(self.evaluation(self.state))
                             self.reset()
                             turn  = 0
                         elif draw == True:
@@ -172,7 +171,19 @@ class Game:
             return 0
 
 
-    def minimax(self):
+    def minimax(self,state,isMax):
+        draw = self.check_draw(state)
+        win = self.check_win(state)
+        if draw == True or win != None:
+            return self.evaluation(state)
+        if (isMax):
+            # max of minimax of children states
+            pass
+        else:
+            # min of minimax of children states
+            pass
+
+    def getChildren(self,state):
         pass
 
     def computer_move(self):
