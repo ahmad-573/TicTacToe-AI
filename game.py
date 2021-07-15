@@ -144,18 +144,18 @@ class Game:
                             turn = (turn + 1)%2
                         status = game.check_win()
                         draw = game.check_draw()
-                        if draw == True:
-                            start = True
-                            time.sleep(0.5)
-                            game.game_end('?')
-                            turn = 0
-                            self.reset()
                         if status != None:
                             start = True
                             time.sleep(0.5)
                             self.game_end(status)
                             self.reset()
                             turn  = 0
+                        elif draw == True:
+                            start = True
+                            time.sleep(0.5)
+                            game.game_end('?')
+                            turn = 0
+                            self.reset()
 
 
 
