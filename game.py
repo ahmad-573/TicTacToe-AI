@@ -4,6 +4,7 @@ import time
 from pygame.locals import *
 import PIL
 from PIL import Image
+import copy
 
 im = Image.open("resources/board.jpg")
 im1 = Image.open("resources/cross.jpg")
@@ -38,8 +39,8 @@ class Game:
         pygame.display.flip()
     
     def draw(self,image,point):
-        x = (Grid_X // 6) + ((Grid_X // 3) * point[0])
-        y = (Grid_Y// 6) + ((Grid_Y // 3) * point[1])
+        x = (Grid_X // 6) + ((Grid_X // 3) * point[1])
+        y = (Grid_Y// 6) + ((Grid_Y // 3) * point[0])
         self.surface.blit(image,(x - (block // 2),y - (block // 2)))
         pygame.display.flip()
 
@@ -50,17 +51,17 @@ class Game:
         mod_x = 0
         mod_y = 0
         if (x < Grid_X // 3):
-            mod_x = 0
-        elif (x < 2*Grid_X // 3):
-            mod_x = 1
-        else:
-            mod_x = 2
-        if (y < Grid_Y // 3):
             mod_y = 0
-        elif (y < 2*Grid_Y // 3):
+        elif (x < 2*Grid_X // 3):
             mod_y = 1
         else:
             mod_y = 2
+        if (y < Grid_Y // 3):
+            mod_x = 0
+        elif (y < 2*Grid_Y // 3):
+            mod_x = 1
+        else:
+            mod_x = 2
         if self.state[mod_x][mod_y] != '?':
             return False
         if image == self.cross:
@@ -121,7 +122,27 @@ class Game:
         start = True
         running = True
         turn = 0
+        computer = False
         while running:
+            if computer == True:
+                if not start:
+                    if turn == 1:
+                        self.computer_move()
+                        turn = (turn+1)%2
+                    status = self.check_win(self.state)
+                    draw = self.check_draw(self.state)
+                    if status != None:
+                        start = True
+                        time.sleep(0.5)
+                        self.game_end(status)
+                        self.reset()
+                        turn  = 0
+                    elif draw == True:
+                        start = True
+                        time.sleep(0.5)
+                        self.game_end('?')
+                        turn = 0
+                        self.reset()
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
@@ -129,15 +150,18 @@ class Game:
                     if event.key == K_c or event.key == K_p:
                         start = False
                         game.draw_board()
+                    if event.key == K_c:
+                        computer = True
                     if start == True:
                         if event.key == K_RETURN:
                             self.start_screen()
-                elif event.type == pygame.MOUSEBUTTONUP:
+                if event.type == pygame.MOUSEBUTTONUP:
                     if not start:
                         if turn == 0:
                             t = self.player_move("player1",self.circle)
                         else:
-                            t = self.player_move("player2",self.cross)
+                            if computer == False:
+                                t = self.player_move("player2",self.cross)
                         if not t:
                             turn = turn
                         else:
@@ -171,23 +195,53 @@ class Game:
             return 0
 
 
-    def minimax(self,state,isMax):
+    def minimax(self,state,isMax,move):
         draw = self.check_draw(state)
         win = self.check_win(state)
         if draw == True or win != None:
             return self.evaluation(state)
-        if (isMax):
+        if (isMax == True):
             # max of minimax of children states
-            pass
+            children = self.getChildren(state,'x')
+            m = -2
+            for child in children:
+                k = self.minimax(child,False,move)
+                m = max(k,m)
+                if m == k:
+                    move[0] = child
+            return m
+
         else:
             # min of minimax of children states
-            pass
+            children = self.getChildren(state,'o')
+            m = 2
+            for child in children:
+                k = self.minimax(child,True,move)
+                m = min(k,m)
+            return m
 
-    def getChildren(self,state):
-        pass
+    def getChildren(self,state,character):
+        children = []
+        for i in range(3):
+            for j in range(3):
+                if state[i][j] == '?':
+                    child = copy.deepcopy(state)
+                    child[i][j] = character
+                    children.append(child)
+        return children
 
     def computer_move(self):
-        pass
+        s = copy.deepcopy(self.state)
+        moves = [1]
+        move = self.minimax(s,True,moves)
+        for i in range(3):
+            for j in range(3):
+                if s[i][j] != moves[0][i][j]:
+                    self.draw(self.cross,(i,j))
+                    self.state[i][j] = 'x'
+                    return None
+
+
 
 
 
@@ -201,4 +255,5 @@ if __name__ == "__main__":
     game = Game()
     game.start_screen()
     game.run()
+
                 
