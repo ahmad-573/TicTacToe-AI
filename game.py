@@ -195,7 +195,7 @@ class Game:
             return 0
 
 
-    def minimax(self,state,isMax,move):
+    def minimax(self,state,isMax,move,depth):
         draw = self.check_draw(state)
         win = self.check_win(state)
         if draw == True or win != None:
@@ -205,10 +205,11 @@ class Game:
             children = self.getChildren(state,'x')
             m = -2
             for child in children:
-                k = self.minimax(child,False,move)
+                k = self.minimax(child,False,move,depth+1)
                 m = max(k,m)
                 if m == k:
-                    move[0] = child
+                    if depth == 0:
+                        move[0] = copy.deepcopy(child)    
             return m
 
         else:
@@ -216,7 +217,7 @@ class Game:
             children = self.getChildren(state,'o')
             m = 2
             for child in children:
-                k = self.minimax(child,True,move)
+                k = self.minimax(child,True,move,depth+1)
                 m = min(k,m)
             return m
 
@@ -233,7 +234,7 @@ class Game:
     def computer_move(self):
         s = copy.deepcopy(self.state)
         moves = [1]
-        move = self.minimax(s,True,moves)
+        move = self.minimax(s,True,moves,0)
         for i in range(3):
             for j in range(3):
                 if s[i][j] != moves[0][i][j]:
@@ -244,12 +245,7 @@ class Game:
 
 
 
-
-
     
-        
-
-        
     
 if __name__ == "__main__":
     game = Game()
